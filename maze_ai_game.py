@@ -7,83 +7,129 @@ from gui.renderer import draw
 
 pygame.init()
 
-screen = pygame.display.set_mode((800, 700))
+WIDTH, HEIGHT = 700, 700
+CELL = 30
+LEFT, TOP = 30, 90
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("AI Maze Solver")
+
 font = pygame.font.SysFont("arial", 22)
 clock = pygame.time.Clock()
 
-ROWS = 20
-COLS = 20
+ROWS = 21
+COLS = 21
+
 start = (0, 0)
 goal = (ROWS - 1, COLS - 1)
+
+
+def grid_to_pixel(r, c):
+    x = c * CELL + LEFT + CELL // 2
+    y = r * CELL + TOP + CELL // 2
+    return x, y
+
 
 def new_game():
     maze = Maze(ROWS, COLS)
     agent = Agent(start, 3)
+
+    px, py = grid_to_pixel(*start)
+    agent.set_pixel_position(px, py)
+
     return maze, agent, [], []
 
+
 maze, agent, explored, path = new_game()
+
 algorithm = "BFS"
+nodes_explored = 0
+path_length = 0
+game_state = "IDLE"
 
-game_state = "PLAYING"  
-# PLAYING | WON | LOST | NO_PATH
 
+# ✅ MAIN GAME LOOP (THIS WAS MISSING)
 while True:
+
     clock.tick(60)
 
-    draw(screen, font, maze, set(explored), set(path),
-         agent, goal, algorithm, game_state)
+    draw(
+        screen, font, maze, set(explored), set(path),
+        agent, goal, algorithm,
+        game_state, nodes_explored, path_length,
+        None
+    )
 
-    for e in pygame.event.get():
+    for event in pygame.event.get():
 
-        if e.type == pygame.QUIT:
+        if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if e.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
 
-            if e.key in (pygame.K_1, pygame.K_KP1):
+            if event.key == pygame.K_1:
                 algorithm = "BFS"
 
-            elif e.key in (pygame.K_2, pygame.K_KP2):
+            if event.key == pygame.K_2:
                 algorithm = "DFS"
 
-            elif e.key in (pygame.K_3, pygame.K_KP3):
+            if event.key == pygame.K_3:
                 algorithm = "A*"
 
-            elif e.key == pygame.K_r:
+            if event.key == pygame.K_r:
                 maze, agent, explored, path = new_game()
-                game_state = "PLAYING"
+                nodes_explored = 0
+                path_length = 0
+                game_state = "IDLE"
 
-            elif e.key == pygame.K_SPACE and game_state == "PLAYING":
+            if event.key == pygame.K_SPACE:
 
                 if algorithm == "BFS":
                     path, explored = bfs(maze, start, goal)
+
                 elif algorithm == "DFS":
                     path, explored = dfs(maze, start, goal)
+
                 else:
                     path, explored = astar(maze, start, goal)
+
+                nodes_explored = len(explored)
+                path_length = len(path)
 
                 if not path:
                     game_state = "NO_PATH"
                     continue
 
-                # Animate exploration
-                for node in explored:
-                    draw(screen, font, maze,
-                         set(explored[:explored.index(node)+1]),
-                         set(), agent, goal, algorithm, game_state)
-                    pygame.time.delay(15)
+                game_state = "ANIMATING"
 
-                # Animate path
                 for step in path:
-                    agent.move(step, maze.traps)
 
-                    draw(screen, font, maze,
-                         set(explored), set(path),
-                         agent, goal, algorithm, game_state)
+                    target_x, target_y = grid_to_pixel(*step)
 
-                    pygame.time.delay(70)
+                    frames = 15
+                    dx = (target_x - agent.pixel_x) / frames
+                    dy = (target_y - agent.pixel_y) / frames
+
+                    for _ in range(frames):
+
+                        pygame.event.pump()
+
+                        agent.pixel_x += dx
+                        agent.pixel_y += dy
+
+                        draw(
+                            screen, font, maze,
+                            set(explored), set(path),
+                            agent, goal, algorithm,
+                            game_state, nodes_explored,
+                            path_length, None
+                        )
+
+                        pygame.display.update()
+                        clock.tick(60)
+
+                    agent.move_to(step, maze.traps)
 
                     if agent.lives <= 0:
                         game_state = "LOST"

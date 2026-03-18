@@ -1,63 +1,94 @@
 from collections import deque
 import heapq
 
-def reconstruct(visited,start,goal):
-    if goal not in visited:
+
+def reconstruct(parent, start, goal):
+    if goal not in parent and goal != start:
         return []
-    path=[]
-    cur=goal
-    while cur:
-        path.append(cur)
-        cur=visited[cur]
-    return path[::-1]
 
-def bfs(maze,start,goal):
-    q=deque([start])
-    visited={start:None}
-    explored=[]
-    while q:
-        node=q.popleft()
+    path = []
+    node = goal
+
+    while node != start:
+        path.append(node)
+        node = parent[node]
+
+    path.append(start)
+    path.reverse()
+    return path
+
+
+# -------- BFS --------
+def bfs(maze, start, goal):
+    queue = deque([start])
+    visited = {start}
+    parent = {}
+    explored = []
+
+    while queue:
+        node = queue.popleft()
         explored.append(node)
-        if node==goal: break
-        for nb in maze.neighbors(*node):
-            if nb not in visited and nb not in maze.traps:
-                visited[nb]=node
-                q.append(nb)
-    return reconstruct(visited,start,goal), explored
 
-def dfs(maze,start,goal):
-    stack=[start]
-    visited={start:None}
-    explored=[]
+        if node == goal:
+            return reconstruct(parent, start, goal), explored
+
+        for neighbor in maze.neighbors(node):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                parent[neighbor] = node
+                queue.append(neighbor)
+
+    return [], explored
+
+
+# -------- DFS --------
+def dfs(maze, start, goal):
+    stack = [start]
+    visited = {start}
+    parent = {}
+    explored = []
+
     while stack:
-        node=stack.pop()
+        node = stack.pop()
         explored.append(node)
-        if node==goal: break
-        for nb in maze.neighbors(*node):
-            if nb not in visited and nb not in maze.traps:
-                visited[nb]=node
-                stack.append(nb)
-    return reconstruct(visited,start,goal), explored
 
-def heuristic(a,b):
-    return abs(a[0]-b[0])+abs(a[1]-b[1])
+        if node == goal:
+            return reconstruct(parent, start, goal), explored
 
-def astar(maze,start,goal):
-    pq=[]
-    heapq.heappush(pq,(0,start))
-    visited={start:None}
-    cost={start:0}
-    explored=[]
-    while pq:
-        _,node=heapq.heappop(pq)
+        for neighbor in maze.neighbors(node):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                parent[neighbor] = node
+                stack.append(neighbor)
+
+    return [], explored
+
+
+# -------- A* --------
+def heuristic(a, b):
+    return abs(a[0]-b[0]) + abs(a[1]-b[1])
+
+
+def astar(maze, start, goal):
+    heap = [(0, start)]
+    parent = {}
+    g_cost = {start: 0}
+    explored = []
+
+    while heap:
+        _, node = heapq.heappop(heap)
         explored.append(node)
-        if node==goal: break
-        for nb in maze.neighbors(*node):
-            if nb in maze.traps: continue
-            new=cost[node]+1
-            if nb not in cost or new<cost[nb]:
-                cost[nb]=new
-                priority=new+heuristic(nb,goal)
-                heapq.heappush(pq,(priority,nb))
-                visited[nb]=node
-    return reconstruct(visited,start,goal), explored
+
+        if node == goal:
+            return reconstruct(parent, start, goal), explored
+
+        for neighbor in maze.neighbors(node):
+            new_cost = g_cost[node] + 1
+
+            if neighbor not in g_cost or new_cost < g_cost[neighbor]:
+                g_cost[neighbor] = new_cost
+                f = new_cost + heuristic(neighbor, goal)
+                heapq.heappush(heap, (f, neighbor))
+                parent[neighbor] = node
+
+    return [], explored
