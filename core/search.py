@@ -44,12 +44,16 @@ def bfs(maze, start, goal):
 # -------- DFS --------
 def dfs(maze, start, goal):
     stack = [start]
-    visited = {start}
+    visited = set()
     parent = {}
     explored = []
 
     while stack:
         node = stack.pop()
+
+        if node in visited:
+            continue
+        visited.add(node)
         explored.append(node)
 
         if node == goal:
@@ -57,7 +61,6 @@ def dfs(maze, start, goal):
 
         for neighbor in maze.neighbors(node):
             if neighbor not in visited:
-                visited.add(neighbor)
                 parent[neighbor] = node
                 stack.append(neighbor)
 
@@ -74,9 +77,14 @@ def astar(maze, start, goal):
     parent = {}
     g_cost = {start: 0}
     explored = []
+    visited = set()
 
     while heap:
         _, node = heapq.heappop(heap)
+
+        if node in visited:
+            continue
+        visited.add(node)
         explored.append(node)
 
         if node == goal:

@@ -7,6 +7,8 @@ class Agent:
         self.pixel_x = 0
         self.pixel_y = 0
 
+        self.angle = 90  # Pointing right by default since start is top-left
+
     def set_pixel_position(self, x, y):
         self.pixel_x = x
         self.pixel_y = y
