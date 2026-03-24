@@ -5,11 +5,11 @@ An interactive, dual-engine Python game that allows users to manually navigate t
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/s1.png" width="45%" border="1" alt="Screenshot 1"/>
-  <img src="screenshots/s2.png" width="45%" border="1" alt="Screenshot 2"/>
+  <img src="screenshots/s5.png" width="45%" border="1" alt="Screenshot 1"/>
+  <img src="screenshots/s4.png" width="45%" border="1" alt="Screenshot 2"/>
   <br>
-  <img src="screenshots/s4.png" width="45%" border="1" alt="Screenshot 4"/>
-  <img src="screenshots/s5.png" width="45%" border="1" alt="Screenshot 5"/>
+  <img src="screenshots/s1.png" width="45%" border="1" alt="Screenshot 4"/>
+  <img src="screenshots/s2.png" width="45%" border="1" alt="Screenshot 5"/>
 </p>
 
 ## Project Overview
